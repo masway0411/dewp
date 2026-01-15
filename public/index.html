@@ -1,86 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Latest Articles</title>
+<meta charset="UTF-8">
+<title>Search Articles</title>
 
-  <!-- SEO BASIC -->
-  <meta name="description" content="Read the latest articles, news, and updates with fast loading and clean experience.">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Search latest articles with fast loading and clean experience.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Preload for speed -->
-  <link rel="preconnect" href="https://raw.githubusercontent.com">
-  <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+<link rel="preconnect" href="https://raw.githubusercontent.com">
+<link rel="dns-prefetch" href="https://raw.githubusercontent.com">
 
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      background: #fff;
-      color: #111;
-      line-height: 1.6;
-    }
-    header {
-      border-bottom: 1px solid #eee;
-      padding: 16px;
-    }
-    nav a {
-      margin-right: 14px;
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-    }
-    nav a:hover {
-      text-decoration: underline;
-    }
-    main {
-      max-width: 1100px;
-      margin: auto;
-      padding: 16px;
-    }
-    .search-box {
-      margin: 20px 0;
-    }
-    .search-box input {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-    }
-    .posts {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
-    article {
-      border: 1px solid #eee;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #fafafa;
-    }
-    article img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      display: block;
-    }
-    article h2 {
-      font-size: 18px;
-      margin: 12px;
-    }
-    article p {
-      font-size: 14px;
-      margin: 0 12px 12px;
-      color: #555;
-    }
-    footer {
-      border-top: 1px solid #eee;
-      margin-top: 40px;
-      padding: 20px;
-      font-size: 14px;
-      text-align: center;
-      color: #666;
-    }
-  </style>
+<style>
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  color: #111;
+}
+header {
+  border-bottom: 1px solid #eee;
+  padding: 16px;
+}
+nav a {
+  margin-right: 14px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 16px;
+}
+form {
+  margin: 20px 0;
+}
+input[type="search"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+}
+.posts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+article {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+article img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+article h2 {
+  font-size: 18px;
+  margin: 12px;
+}
+article p {
+  margin: 0 12px 12px;
+  font-size: 14px;
+  color: #555;
+}
+footer {
+  border-top: 1px solid #eee;
+  margin-top: 40px;
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+</style>
 </head>
 
 <body>
@@ -96,41 +87,54 @@
 </header>
 
 <main>
-  <h1>Latest Articles</h1>
+  <h1>Search Articles</h1>
 
-  <!-- SEARCH -->
-  <div class="search-box">
-    <input id="search" placeholder="Search articles..." />
-  </div>
+  <!-- SEARCH FORM (ENTER FIX) -->
+  <form id="searchForm">
+    <input id="searchInput" type="search" placeholder="Type keyword and press Enter">
+  </form>
 
-  <!-- LOCAL SEARCH RESULT -->
+  <!-- LOCAL RESULT -->
   <div id="results" class="posts"></div>
 
-  <!-- GOOGLE CSE RESULT (optional, SEO safe) -->
-  <script async src="https://cse.google.com/cse.js?cx=d1bdd361602674021"></script>
-  <div class="gcse-searchresults-only"></div>
+  <!-- GOOGLE CSE FALLBACK -->
+  <div class="gcse-searchresults-only" style="display:none"></div>
 </main>
 
 <footer>
-  © <span id="year"></span> Your Website Name. All rights reserved.
+  © <span id="year"></span> Your Website
 </footer>
 
-<!-- GOOGLE CSE (load sekali) -->
+<!-- LOAD GOOGLE CSE -->
 <script async src="https://cse.google.com/cse.js?cx=d1bdd361602674021"></script>
 
 <script>
-let indexData = [];
+document.getElementById("year").textContent = new Date().getFullYear();
 
-fetch("/index.json")
-  .then(r => r.json())
-  .then(data => indexData = data);
-
-const input = document.getElementById("search");
+const form = document.getElementById("searchForm");
+const input = document.getElementById("searchInput");
 const results = document.getElementById("results");
 const cseBox = document.querySelector(".gcse-searchresults-only");
 
-input.addEventListener("input", () => {
-  const q = input.value.trim().toLowerCase();
+let indexData = [];
+
+/* LOAD INDEX */
+fetch("/index.json")
+  .then(r => r.json())
+  .then(data => {
+    indexData = data;
+    render(indexData.slice(0,10));
+  });
+
+/* ENTER KEY FIX */
+form.addEventListener("submit", e => {
+  e.preventDefault(); // 🔥 VERY IMPORTANT
+  runSearch(input.value);
+});
+
+/* SEARCH LOGIC */
+function runSearch(query) {
+  const q = query.trim().toLowerCase();
 
   results.innerHTML = "";
   cseBox.style.display = "none";
@@ -150,17 +154,17 @@ input.addEventListener("input", () => {
   } else {
     cseBox.style.display = "block";
 
-    // trigger CSE search
     if (window.google && google.search) {
       google.search.cse.element
         .getElement("searchresults-only")
         .execute(q);
     }
   }
-});
+}
 
-function render(posts){
-  results.innerHTML = posts.map(p=>`
+/* RENDER LOCAL RESULT */
+function render(posts) {
+  results.innerHTML = posts.map(p => `
     <article>
       <a href="${p.url}">
         <img src="${p.image || '/assets/no-image.jpg'}" loading="lazy">
