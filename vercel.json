@@ -1,0 +1,5 @@
+{
+  "routes": [
+    { "src": "^/([0-9]{4})/(.*)$", "dest": "/article.html?year=$1&slug=$2" }
+  ]
+}

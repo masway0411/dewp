@@ -1,0 +1,7 @@
+{
+  "name": "github-txt-cms",
+  "type": "module",
+  "scripts": {
+    "index": "node scripts/generate-index.js"
+  }
+}
