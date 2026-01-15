@@ -97,14 +97,26 @@
 
 <main>
   <h1>Latest Articles</h1>
-<!-- SEARCH -->
+
+  <!-- SEARCH -->
   <div class="search-box">
     <input id="search" placeholder="Search articles..." />
   </div>
 
   <!-- LOCAL SEARCH RESULT -->
   <div id="results" class="posts"></div>
+
+  <!-- GOOGLE CSE RESULT (optional, SEO safe) -->
   <script async src="https://cse.google.com/cse.js?cx=d1bdd361602674021"></script>
+  <div class="gcse-searchresults-only"></div>
+</main>
+
+<footer>
+  © <span id="year"></span> Your Website Name. All rights reserved.
+</footer>
+
+<!-- GOOGLE CSE (load sekali) -->
+<script async src="https://cse.google.com/cse.js?cx=d1bdd361602674021"></script>
 
 <script>
 let indexData = [];
@@ -115,13 +127,13 @@ fetch("/index.json")
 
 const input = document.getElementById("search");
 const results = document.getElementById("results");
+const cseBox = document.querySelector(".gcse-searchresults-only");
 
 input.addEventListener("input", () => {
   const q = input.value.trim().toLowerCase();
 
-  // reset
   results.innerHTML = "";
-  document.querySelector(".gcse-searchresults-only").style.display = "none";
+  cseBox.style.display = "none";
 
   if (!q) {
     render(indexData.slice(0,10));
@@ -136,11 +148,12 @@ input.addEventListener("input", () => {
   if (local.length > 0) {
     render(local.slice(0,10));
   } else {
-    // fallback to Google CSE
-    document.querySelector(".gcse-searchresults-only").style.display = "block";
+    cseBox.style.display = "block";
 
+    // trigger CSE search
     if (window.google && google.search) {
-      google.search.cse.element.getElement("searchresults-only")
+      google.search.cse.element
+        .getElement("searchresults-only")
         .execute(q);
     }
   }
@@ -157,52 +170,6 @@ function render(posts){
     </article>
   `).join("");
 }
-</script>
-<div class="gcse-searchresults-only" style="display:none"></div>
-</main>
-
-<footer>
-  © <span id="year"></span> Your Website Name. All rights reserved.
-</footer>
-
-<script>
-document.getElementById("year").textContent = new Date().getFullYear();
-
-let indexData = [];
-
-fetch("/index.json")
-  .then(r => r.json())
-  .then(data => {
-    indexData = data;
-    render(data.slice(0, 10));
-  });
-
-function render(posts) {
-  const el = document.getElementById("results");
-  el.innerHTML = "";
-  posts.forEach(p => {
-    el.innerHTML += `
-      <article>
-        <a href="${p.url}">
-          <img src="${p.image || '/assets/no-image.jpg'}" loading="lazy" alt="${p.title}">
-        </a>
-        <h2><a href="${p.url}">${p.title}</a></h2>
-        <p>${p.excerpt || ""}</p>
-      </article>
-    `;
-  });
-}
-
-document.getElementById("search").addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  if (!q) return render(indexData.slice(0, 10));
-
-  const filtered = indexData.filter(p =>
-    p.title.toLowerCase().includes(q) ||
-    p.slug.includes(q)
-  );
-  render(filtered.slice(0, 10));
-});
 </script>
 
 </body>
